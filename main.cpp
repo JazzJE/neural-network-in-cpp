@@ -1,21 +1,19 @@
 #include <iostream>
+#include <fstream>
 #include "NeuralNetwork.h"
 #include "Layer.h"
 #include "Neuron.h"
 
+// data set used: https://www.kaggle.com/datasets/meharshanali/amazon-stocks-2025
+int number_of_samples = 6988;
+int number_of_fields = 6;
+
 // driver for class
 int main()
 {
-	// turn the image into 
-
-	// specify how many layers there should be in the network and how many neurons for each layer
-	int number_of_layers = 3;
-	int number_of_neurons_each_layer[] = { 5, 10, 1 };
-
-	// the first argument should be the number of layers
-	// the second argument should be an array for the number neurons in each layer
-	// i.e., (3, [5, 10, 1]) = 3 layers — input layer = 5 features; 1st hidden layer = 10 neurons;output layer = 1 neuron;
-	NeuralNetwork n(number_of_layers, number_of_neurons_each_layer);
-
-	n.train_from_data();
+	// specify the number of neurons you want to have in the layers
+	// i.e., {5, 10, 1} = 3 layers — input layer = 5 features; 1st hidden layer = 10 neurons;output layer = 1 neuron;
+	// WARNING: ensure that the first number is equal to the number of features of the samples; this is our 0th/input layer
+	int number_of_neurons_each_layer[] = { number_of_fields, 10, 1 };
+	NeuralNetwork n(number_of_neurons_each_layer);
 }
