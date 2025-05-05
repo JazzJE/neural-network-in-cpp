@@ -18,30 +18,24 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NeuralNetwork.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Layer.cpp">
+    <ClCompile Include="DenseLayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Neuron.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InputLayer.cpp">
+    <ClCompile Include="NeuralNetwork.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="NeuralNetwork.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Layer.h">
+    <ClInclude Include="DenseLayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Neuron.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="InputLayer.h">
+    <ClInclude Include="NeuralNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

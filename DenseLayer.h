@@ -1,5 +1,5 @@
 #pragma once
-class Neuron
+class DenseLayer
 {
 };
 

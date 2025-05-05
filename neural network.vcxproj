@@ -127,15 +127,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="InputLayer.cpp" />
-    <ClCompile Include="Layer.cpp" />
+    <ClCompile Include="DenseLayer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
     <ClCompile Include="Neuron.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="InputLayer.h" />
-    <ClInclude Include="Layer.h" />
+    <ClInclude Include="DenseLayer.h" />
     <ClInclude Include="NeuralNetwork.h" />
     <ClInclude Include="Neuron.h" />
   </ItemGroup>

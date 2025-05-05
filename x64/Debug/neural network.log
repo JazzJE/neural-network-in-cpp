@@ -1,7 +1,2 @@
-﻿  InputLayer.cpp
-  Layer.cpp
-  main.cpp
-  NeuralNetwork.cpp
-  Neuron.cpp
-  Generating Code...
+﻿  main.cpp
   neural network.vcxproj -> C:\Users\JedEs\Desktop\neural network\x64\Debug\neural network.exe
