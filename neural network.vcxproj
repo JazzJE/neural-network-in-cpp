@@ -128,12 +128,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DenseLayer.cpp" />
+    <ClCompile Include="InitializationFunctions.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
     <ClCompile Include="Neuron.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DenseLayer.h" />
+    <ClInclude Include="InitializationFunctions.h" />
     <ClInclude Include="NeuralNetwork.h" />
     <ClInclude Include="Neuron.h" />
   </ItemGroup>
