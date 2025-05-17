@@ -183,10 +183,11 @@ bool validate_weights_and_biases_for_line(std::fstream& weights_and_biases_file,
 
 
 // parse in the csv of data
-void parse_csv_sample_data(std::fstream& dataset_file, double**& training_samples, double* target_values,
+void parse_sample_data_file(std::fstream& dataset_file, double**& training_samples, double* target_values,
 	const int& number_of_features, const int& number_of_samples)
 {
-	std::string line;
+	std::string line, value;
+	std::stringstream ss;
 
 	// for each training sample t
 	for (int t = 0; t < number_of_samples; t++)
@@ -194,8 +195,9 @@ void parse_csv_sample_data(std::fstream& dataset_file, double**& training_sample
 		// get the line of features
 		getline(dataset_file, line);
 
-		std::stringstream ss(line);
-		std::string value;
+		// clear stringstream object
+		ss.clear();
+		ss.str(line);
 
 		// get each feature and input them into the training samples
 		for (int f = 0; f < number_of_features; f++)
@@ -208,8 +210,71 @@ void parse_csv_sample_data(std::fstream& dataset_file, double**& training_sample
 		getline(ss, value, '\n');
 		target_values[t] = std::stod(value);
 	}
+}
 
-	dataset_file.close();
+// parse the weights_and_biases file into the array
+void parse_weights_and_biases_file(std::fstream& weights_and_biases_file, double*** weights, double** biases,
+	const int* number_of_neurons_each_hidden_layer, const int& number_of_hidden_layers, const int& number_of_features)
+{
+	std::string line, value;
+	std::stringstream ss;
+
+	// parse the first layer into the weights and biases arrays
+	for (int n = 0; n < number_of_neurons_each_hidden_layer[0]; n++)
+	{
+		getline(weights_and_biases_file, line);
+
+		ss.clear();
+		ss.str(line);
+
+		for (int w = 0; w < number_of_features; w++)
+		{
+			getline(ss, value, ',');
+			weights[0][n][w] = std::stod(value);
+		}
+
+		// last value will be bias value
+		getline(ss, value, '\n');
+		biases[0][n] = std::stod(value);
+	}
+
+	// parse the rest of the layers into the weights and biases array
+	for (int l = 1; l < number_of_hidden_layers; l++)
+	{
+		for (int n = 0; n < number_of_neurons_each_hidden_layer[l]; n++)
+		{
+			getline(weights_and_biases_file, line);
+
+			ss.clear();
+			ss.str(line);
+
+			for (int w = 0; w < number_of_neurons_each_hidden_layer[l - 1]; w++)
+			{
+				getline(ss, value, ',');
+				weights[l][n][w] = std::stod(value);
+			}
+
+			// last value will be bias value
+			getline(ss, value, '\n');
+			biases[l][n] = std::stod(value);
+		}
+	}
+
+	// parse last layer into the weights and biases array
+	// remember that the number of hidden layers is equal to the index of the last layer
+	getline(weights_and_biases_file, line);
+
+	ss.clear();
+	ss.str(line);
+
+	for (int w = 0; w < number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1]; w++)
+	{
+		getline(ss, value, ',');
+		weights[number_of_hidden_layers][0][w] = std::stod(value);
+	}
+
+	getline(ss, value, '\n');
+	*(biases[number_of_hidden_layers]) = std::stod(value);
 
 }
 
@@ -228,4 +293,33 @@ void randomize_training_samples(double**& training_samples, const int& number_of
 		training_samples[random_index] = training_samples[current_index];
 		training_samples[current_index] = temp;
 	}
+}
+
+void print_weights_and_biases(double*** weights, double** biases,
+	const int* number_of_neurons_each_hidden_layer, const int& number_of_hidden_layers, const int& number_of_features)
+{
+	for (int n = 0; n < number_of_neurons_each_hidden_layer[0]; n++)
+	{
+		for (int w = 0; w < number_of_features; w++)
+			std::cout << weights[0][n][w] << ", ";
+
+		std::cout << biases[0][n] << std::endl;
+	}
+
+	for (int l = 1; l < number_of_hidden_layers; l++)
+	{
+		for (int n = 0; n < number_of_neurons_each_hidden_layer[l]; n++)
+		{
+
+			for (int w = 0; w < number_of_neurons_each_hidden_layer[l - 1]; w++)
+				std::cout << weights[l][n][w] << ", ";
+
+			std::cout << biases[l][n] << std::endl;
+		}
+	}
+
+	for (int w = 0; w < number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1]; w++)
+		std::cout << weights[number_of_hidden_layers][0][w] << ", ";
+
+	std::cout << *(biases[number_of_hidden_layers]) << std::endl;
 }
