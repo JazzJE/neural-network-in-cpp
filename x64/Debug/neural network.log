@@ -1,4 +1,7 @@
 ﻿  InitializationFunctions.cpp
+C:\Users\JedEs\Desktop\neural network\neural network\InitializationFunctions.cpp(237,12): warning C4834: discarding return value of function with [[nodiscard]] attribute
+C:\Users\JedEs\Desktop\neural network\neural network\InitializationFunctions.cpp(329,14): warning C4834: discarding return value of function with [[nodiscard]] attribute
   main.cpp
+  MenuFunctions.cpp
+C:\Users\JedEs\Desktop\neural network\neural network\MenuFunctions.cpp(11,2): error C3861: 'getline': identifier not found
   Generating Code...
-  neural network.vcxproj -> C:\Users\JedEs\Desktop\neural network\x64\Debug\neural network.exe
