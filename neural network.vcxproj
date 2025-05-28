@@ -130,6 +130,7 @@
     <ClCompile Include="DenseLayer.cpp" />
     <ClCompile Include="InitializationFunctions.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MemoryAllocFunctions.cpp" />
     <ClCompile Include="MenuFunctions.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
     <ClCompile Include="Neuron.cpp" />
@@ -137,6 +138,7 @@
   <ItemGroup>
     <ClInclude Include="DenseLayer.h" />
     <ClInclude Include="InitializationFunctions.h" />
+    <ClInclude Include="MemoryAllocFunctions.h" />
     <ClInclude Include="MenuFunctions.h" />
     <ClInclude Include="NeuralNetwork.h" />
     <ClInclude Include="Neuron.h" />

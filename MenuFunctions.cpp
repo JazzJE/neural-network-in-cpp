@@ -1,27 +1,79 @@
 #include "MenuFunctions.h"
-char option_menu_choice()
+void generate_border_line()
 {
-	char option;
-	std::cout << "\nOption Menu:"
-		<< "\n\t1. Train neural network (five-fold, batch gradient descent)"
-		<< "\n\t2. Predict a value"
-		<< "\n\t3. Update your neural network to latest trained version"
-		<< "\n\t4. Exit program"
-		<< "\nPlease select an option: ";
-	std::cin >> option;
+	std::cout << '\n' << std::setw(32) << std::right << "----------------------\n";
+}
 
-	while (option < '1' || option > '4')
+void input_parameter_rates(double& learning_rate, double& regularization_rate)
+{
+	// validate input for the learning rate
+	while (true)
 	{
-		std::cout << "[ERROR] Please enter a valid input (1-4): ";
-		std::cin >> option;
+		std::cout << "\n\tPlease enter a double value for the new ***learning rate***: ";
+		std::cin >> learning_rate;
+
+		// if bad input detected, then warn user
+		if (std::cin.fail())
+		{
+			std::cin.clear(); // clear error flags
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // ignore the key buffer bad input
+			std::cout << "\t[ERROR] Invalid input. Please do not enter characters or other anomalous characters for the new ***learning rate***.\n";
+		}
+
+		// if valid, then continue
+		else break;
 	}
 
-	return option;
+	generate_border_line();
+
+	// validate input for the regularization rate
+	while (true)
+	{
+		std::cout << "\n\tPlease enter a double value for the new ***regularization rate***: ";
+		std::cin >> regularization_rate;
+
+		if (std::cin.fail())
+		{
+			std::cin.clear(); // clear error flags
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // ignore the key buffer bad input
+			std::cout << "\t[ERROR] Invalid input. Please do not enter characters or other anomalous characters for the new ***regularization rate***.\n";
+		}
+
+		else break;
+	}
 }
 
 // update the weights and biases
-void update_weights_and_biases_file(double*** weights, double** biases, std::string weights_and_biases_file_name, 
-	int* number_of_neurons_each_hidden_layer, int number_of_hidden_layers)
+void update_weights_and_biases_file(std::string weights_and_biases_file_name, double*** weights, double** biases,
+	const int* number_of_neurons_each_hidden_layer, int number_of_hidden_layers, int number_of_features)
 {
+	// clear the file
+	std::fstream weights_and_biases_file(weights_and_biases_file_name, std::ios::out | std::ios::trunc);
 
+	// first layer
+	for (int n = 0; n < number_of_neurons_each_hidden_layer[0]; n++)
+	{
+		for (int w = 0; w < number_of_features; w++)
+			weights_and_biases_file << weights[0][n][w] << ", ";
+		weights_and_biases_file << biases[0][n] << "\n";
+	}
+
+	// rest of the layers
+	for (int l = 1; l < number_of_hidden_layers; l++)
+	{
+		for (int n = 0; n < number_of_neurons_each_hidden_layer[l]; n++)
+		{
+			for (int w = 0; w < number_of_neurons_each_hidden_layer[l - 1]; w++)
+				weights_and_biases_file << weights[l][n][w] << ", ";
+			weights_and_biases_file << biases[l][n] << "\n";
+		}
+	}
+	
+	// output layer
+	for (int w = 0; w < number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1]; w++)
+		weights_and_biases_file << weights[number_of_hidden_layers][0][w] << ", ";
+	weights_and_biases_file << *(biases[number_of_hidden_layers]) << "\n";
+
+	// close the file
+	weights_and_biases_file.close();
 }

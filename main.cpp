@@ -20,14 +20,17 @@
 */
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
-#include <cmath>
+#include <random>
+#include <cstdLib>
 #include <string>
 #include "InitializationFunctions.h"
-#include "NeuralNetwork.h"
-#include "DenseLayer.h"
-#include "Neuron.h"
+#include "MemoryAllocFunctions.h"
 #include "MenuFunctions.h"
+#include "DenseLayer.h"
+#include "NeuralNetwork.h"
+#include "Neuron.h"
 
 // driver for class
 int main()
@@ -58,7 +61,10 @@ int main()
 
 	// PAST THIS POINT IS ALL THE HARD CODE; REFER TO ABOVE PARTS FOR EDITABLE COMPONENTS
 	
-	std::cerr << "The program may take a couple of seconds to load...\n";
+	std::cout << "The program may take a couple of seconds to load...\n" << std::fixed << std::setprecision(2);
+
+	// initialize new seed
+	srand(time(0));
 
 	// open the file for the samples
 	std::string dataset_file_name = "dataset.csv";
@@ -84,8 +90,10 @@ int main()
 	double** training_samples = allocate_memory_for_training_samples(number_of_samples, number_of_features);
 	double* target_values = new double[number_of_samples];
 
-	// parse the csv dataset into the 2d training samples array
-	parse_dataset_file(dataset_file, training_samples, target_values, number_of_features, number_of_samples);
+	// parse the csv dataset into the 2d training samples array, but also get the names of the columns
+	std::string* feature_names = new std::string[number_of_features];
+	std::string target_name;
+	parse_dataset_file(dataset_file, training_samples, target_values, feature_names, target_name, number_of_features, number_of_samples);
 
 	// randomize the training samples orders a lot to ensure randomness
 	int number_of_shuffles = 5;
@@ -119,8 +127,8 @@ int main()
 
 	// 3d array to hold all the weights and biases of each neuron of each layer 
 	// add one to account for the output layer
-	double*** weights = allocate_memory_for_weights(number_of_neurons_each_hidden_layer, number_of_hidden_layers, number_of_features);
-	double** biases = allocate_memory_for_biases(number_of_neurons_each_hidden_layer, number_of_hidden_layers, number_of_features);
+	double*** const weights = allocate_memory_for_weights(number_of_neurons_each_hidden_layer, number_of_hidden_layers, number_of_features);
+	double** const biases = allocate_memory_for_biases(number_of_neurons_each_hidden_layer, number_of_hidden_layers, number_of_features);
 
 	// parse the weights and biases into a 3d array
 	parse_weights_and_biases_file(weights_and_biases_file, weights, biases, 
@@ -129,18 +137,92 @@ int main()
 	// close weights file when done
 	weights_and_biases_file.close();
 
-	// introduce user to program and initialize variables
+
+	// begin menus and actual interaction with neural network from this line onwards
 	char option;
-	double learning_rate, regularization;
-	std::cout << "\n\nHello! Welcome to my hard-coded ReLU function-based neural network.\n";
-	
+	double learning_rate, regularization_rate;
+
 	// ask user for an initial value of the learning rate and the regularization values
+	std::cout << "Hello! Welcome to my hard-coded neural network program.\n";
+	std::cout << "Before beginning, please give initial values for the following parameters.\n";
 
-	do
+	generate_border_line();
+	input_parameter_rates(learning_rate, regularization_rate);
+	generate_border_line();
+
+	// create the neural network
+	NeuralNetwork neural_network(weights, biases, number_of_neurons_each_hidden_layer, number_of_hidden_layers,
+		number_of_features, learning_rate, regularization_rate);
+
+	while (true)
 	{
-		option = option_menu_choice();
+		std::cout << "\nOption Menu:"
+			<< "\n\t1. Train neural network (five-fold, mini-batch gradient descent)"
+			<< "\n\t2. Predict a value"
+			<< "\n\t3. Save your current neural network (update the weights and biases file)"
+			<< "\n\t4. Change learning and regularization parameters"
+			<< "\n\t5. Exit program (exiting will not save the network)"
+			<< "\nPlease select an option: ";
+		std::cin >> option;
+
+		// input validation
+		while (option < '1' || option > '5')
+		{
+			std::cout << "[ERROR] Please enter a valid input (1-5): ";
+			std::cin >> option;
+		}
+
+		// end the program if selected
+		if (option == '5') break;
+
+		generate_border_line();
+
+		switch (option)
+		{
+		case '1': // train neural network
 
 
-	} while (option == 'Y');
+
+			break; // end case
+
+		case '2': // predict a value
+
+		{
+			int random_index = std::rand() % number_of_samples;
+			std::cout << "\nProvided these features for sample #" << random_index << " : ";
+			for (int f = 0; f < number_of_features; f++)
+				std::cout << "\n\t" << feature_names[f] << " - " << training_samples[random_index][f];
+
+			std::cout << "\n\nActual value of " << target_name << ": " << target_values[random_index];
+
+			std::cout << "\n\nPrediction of " << target_name << ": " << neural_network.calculate_prediction(training_samples[random_index],
+				target_values[random_index]) << "\n";
+
+			break; // end case
+		}
+
+		case '3': // save current neural network
+
+			update_weights_and_biases_file(weights_and_biases_file_name, weights, biases, 
+				number_of_neurons_each_hidden_layer, number_of_hidden_layers, number_of_features);
+
+			break; // end case
+
+		case '4': // change learning and regularization parameters
+
+			input_parameter_rates(learning_rate, regularization_rate);
+			neural_network.set_learning_rate(learning_rate);
+			neural_network.set_regularization_rate(regularization_rate);
+
+			// end case
+
+		}
+
+		generate_border_line();
+
+	}
+
+	std::cout << "\nEnding program...\n";
+	return 0;
 
 }

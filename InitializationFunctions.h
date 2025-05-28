@@ -1,5 +1,4 @@
-#ifndef INITIALIZATIONFUNCTIONS_H
-#define INITIALIZATIONFUNCTIONS_H
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -29,23 +28,14 @@ bool check_line_weights_and_biases_file(std::fstream& weights_and_biases_file, i
 // dataset file methods
 
 	// parsing dataset file
-void parse_dataset_file(std::fstream& dataset_file, double** training_samples, double* target_values,
-	int number_of_features, int number_of_samples);
+void parse_dataset_file(std::fstream& dataset_file, double** training_samples, double* target_values, std::string* feature_names,
+	std::string& target_name, int number_of_features, int number_of_samples);
 
 	// validating dataset file
 void validate_dataset_file(std::fstream& dataset_file, std::string dataset_file_name, int number_of_features);
 int find_error_dataset_file(std::fstream& dataset_file, int number_of_features);
 
-// memory allocation methods
-
-double*** allocate_memory_for_weights(const int* number_of_neurons_each_hidden_layer, int number_of_hidden_layers, int number_of_features);
-double** allocate_memory_for_biases(const int* number_of_neurons_each_hidden_layer, int number_of_hidden_layers, int number_of_features);
-double** allocate_memory_for_training_samples(int number_of_samples, int number_of_features);
-double* allocate_memory_for_target_values(int number_of_samples);
-
 // miscallaneous methods
 void randomize_training_samples(double**& training_samples, const int& number_of_samples);
 int count_number_of_samples(std::fstream& dataset_file);
 int count_number_of_features(std::fstream& dataset_file);
-
-#endif

@@ -13,42 +13,60 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Neural Network Files %28.h%29">
+      <UniqueIdentifier>{14c73d0d-cdd4-4934-b9c2-07b4b2b9dbf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Neural Network Files %28.cpp%29">
+      <UniqueIdentifier>{ebe1b2e5-8d5a-4ee0-b132-dfdd9ec61ea2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Main Files %28.cpp%29">
+      <UniqueIdentifier>{d52f0398-17c9-4244-b762-edeb554164ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Main Files %28.h%29">
+      <UniqueIdentifier>{f79a9946-b6c7-42e3-a465-b85a867077e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DenseLayer.cpp">
+      <Filter>Source Files\Neural Network Files %28.cpp%29</Filter>
+    </ClCompile>
+    <ClCompile Include="NeuralNetwork.cpp">
+      <Filter>Source Files\Neural Network Files %28.cpp%29</Filter>
+    </ClCompile>
+    <ClCompile Include="Neuron.cpp">
+      <Filter>Source Files\Neural Network Files %28.cpp%29</Filter>
+    </ClCompile>
+    <ClCompile Include="InitializationFunctions.cpp">
+      <Filter>Source Files\Main Files %28.cpp%29</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuFunctions.cpp">
+      <Filter>Source Files\Main Files %28.cpp%29</Filter>
+    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InitializationFunctions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NeuralNetwork.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DenseLayer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Neuron.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MenuFunctions.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="MemoryAllocFunctions.cpp">
+      <Filter>Source Files\Main Files %28.cpp%29</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="NeuralNetwork.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InitializationFunctions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DenseLayer.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Neural Network Files %28.h%29</Filter>
+    </ClInclude>
+    <ClInclude Include="NeuralNetwork.h">
+      <Filter>Header Files\Neural Network Files %28.h%29</Filter>
     </ClInclude>
     <ClInclude Include="Neuron.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Neural Network Files %28.h%29</Filter>
+    </ClInclude>
+    <ClInclude Include="InitializationFunctions.h">
+      <Filter>Header Files\Main Files %28.h%29</Filter>
     </ClInclude>
     <ClInclude Include="MenuFunctions.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Main Files %28.h%29</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryAllocFunctions.h">
+      <Filter>Header Files\Main Files %28.h%29</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
