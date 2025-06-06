@@ -23,14 +23,15 @@
 #include <iomanip>
 #include <fstream>
 #include <random>
-#include <cstdLib>
+#include <cstdlib>
 #include <string>
 #include "InitializationFunctions.h"
-#include "MemoryAllocFunctions.h"
+#include "MemoryFunctions.h"
 #include "MenuFunctions.h"
 #include "DenseLayer.h"
 #include "NeuralNetwork.h"
 #include "Neuron.h"
+#include "StatisticsFunctions.h"
 
 // driver for class
 int main()
@@ -38,16 +39,7 @@ int main()
 	// !!! REMINDER that the last column is the column of values you want to predict !!!
 		// for example, if you have features of a house and want to predict price, then make the house prices the last column
 		// of the csv that you want to use as your database
-	// !!! ALSO !!! the target values column does not count towards the number of features (i.e., if you have only 2 features 
-	// and are predicting house prices, just put number_of_features as 2)
-
-
 	// data set used: https://www.kaggle.com/datasets/meharshanali/amazon-stocks-2025	
-	// order of columns
-		// 1. Time since Unix epoch
-		// 2. Opening price
-		// 3. Highest price
-		// 4. Lowest Price
 
 	// !!! NOTE AGAIN that this program is hard-written with a single neuron for output !!!
 	// this is the order and number of neurons you want in each hidden layer
@@ -55,13 +47,14 @@ int main()
 		// the first hidden layer will have 5 neurons
 		// the second hidden layer will have 10 neurons
 		// the third hidden layer will have 3 neurons
+		// the fourth/output layer will have 1 neuron, predicting the value
 	const int number_of_neurons_each_hidden_layer[] = { 7, 10, 3 };
 
 
 
 	// PAST THIS POINT IS ALL THE HARD CODE; REFER TO ABOVE PARTS FOR EDITABLE COMPONENTS
 	
-	std::cout << "The program may take a couple of seconds to load...\n" << std::fixed << std::setprecision(2);
+	std::cout << "The program may take a couple of seconds to load...\n" << std::fixed;
 
 	// initialize new seed
 	srand(time(0));
@@ -87,18 +80,24 @@ int main()
 	validate_dataset_file(dataset_file, dataset_file_name, number_of_features);
 
 	// allocate memory for the training samples and target values
-	double** training_samples = allocate_memory_for_training_samples(number_of_samples, number_of_features);
+	double** training_features = allocate_memory_for_training_features(number_of_samples, number_of_features);
 	double* target_values = new double[number_of_samples];
 
 	// parse the csv dataset into the 2d training samples array, but also get the names of the columns
 	std::string* feature_names = new std::string[number_of_features];
 	std::string target_name;
-	parse_dataset_file(dataset_file, training_samples, target_values, feature_names, target_name, number_of_features, number_of_samples);
+	parse_dataset_file(dataset_file, training_features, target_values, feature_names, target_name, number_of_features, number_of_samples);
 
 	// randomize the training samples orders a lot to ensure randomness
 	int number_of_shuffles = 5;
 	for (int s = 0; s < number_of_shuffles; s++)
-		randomize_training_samples(training_samples, number_of_samples);
+		randomize_training_samples(training_features, target_values, number_of_samples);
+
+	// calculate the means and standard deviations of all the features and normalize them
+	double* all_samples_means = calculate_features_means(training_features, number_of_features, number_of_samples);
+	double* all_samples_stddevs = calculate_features_stddevs(training_features, all_samples_means, number_of_features, number_of_samples);
+	double** all_features_normalized = calculate_normalized_features(training_features, number_of_samples, number_of_features, all_samples_means, 
+		all_samples_stddevs);
 
 	// close dataset file when done
 	dataset_file.close();
@@ -128,7 +127,7 @@ int main()
 	// 3d array to hold all the weights and biases of each neuron of each layer 
 	// add one to account for the output layer
 	double*** const weights = allocate_memory_for_weights(number_of_neurons_each_hidden_layer, number_of_hidden_layers, number_of_features);
-	double** const biases = allocate_memory_for_biases(number_of_neurons_each_hidden_layer, number_of_hidden_layers, number_of_features);
+	double** const biases = allocate_memory_for_biases(number_of_neurons_each_hidden_layer, number_of_hidden_layers);
 
 	// parse the weights and biases into a 3d array
 	parse_weights_and_biases_file(weights_and_biases_file, weights, biases, 
@@ -137,14 +136,13 @@ int main()
 	// close weights file when done
 	weights_and_biases_file.close();
 
-
 	// begin menus and actual interaction with neural network from this line onwards
 	char option;
 	double learning_rate, regularization_rate;
 
 	// ask user for an initial value of the learning rate and the regularization values
 	std::cout << "Hello! Welcome to my hard-coded neural network program.\n";
-	std::cout << "Before beginning, please give initial values for the following parameters.\n";
+	std::cout << "\nBefore beginning, please give initial values for the following parameters.\n\n";
 
 	generate_border_line();
 	input_parameter_rates(learning_rate, regularization_rate);
@@ -181,7 +179,9 @@ int main()
 		{
 		case '1': // train neural network
 
-
+			std::cout << "\n\tTraining your network...";
+			neural_network.five_fold_train(training_features, target_values, number_of_samples);
+			std::cout << "\n\tDone!\n";
 
 			break; // end case
 
@@ -191,12 +191,11 @@ int main()
 			int random_index = std::rand() % number_of_samples;
 			std::cout << "\nProvided these features for sample #" << random_index << " : ";
 			for (int f = 0; f < number_of_features; f++)
-				std::cout << "\n\t" << feature_names[f] << " - " << training_samples[random_index][f];
+				std::cout << "\n\t" << feature_names[f] << " - " << training_features[random_index][f];
 
 			std::cout << "\n\nActual value of " << target_name << ": " << target_values[random_index];
 
-			std::cout << "\n\nPrediction of " << target_name << ": " << neural_network.calculate_prediction(training_samples[random_index],
-				target_values[random_index]) << "\n";
+			std::cout << "\n\nPrediction of " << target_name << ": " << neural_network.calculate_prediction(training_features[random_index]) << "\n";
 
 			break; // end case
 		}

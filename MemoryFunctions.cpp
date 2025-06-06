@@ -1,4 +1,4 @@
-#include "MemoryAllocFunctions.h"
+#include "MemoryFunctions.h"
 
 // methods to allocate memory for weights
 
@@ -39,7 +39,7 @@ double*** allocate_memory_for_weights(const int* number_of_neurons_each_hidden_l
 	// the 2d pointer can point to any of the 1d layer pointers
 	// each 1d layer pointer will point to the beginning of an array of doubles where each double
 		// represents each neuron's bias value inside of the layer
-double** allocate_memory_for_biases(const int* number_of_neurons_each_hidden_layer, int number_of_hidden_layers, int number_of_features)
+double** allocate_memory_for_biases(const int* number_of_neurons_each_hidden_layer, int number_of_hidden_layers)
 {
 	double** biases = new double* [number_of_hidden_layers + 1];
 
@@ -59,7 +59,7 @@ double** allocate_memory_for_biases(const int* number_of_neurons_each_hidden_lay
 // allocate 2d array for training samples via 2d pointer
 	// the 2d pointer can point to any 1d sample pointers
 	// each 1d sample pointer will store the features of the ith example
-double** allocate_memory_for_training_samples(int number_of_samples, int number_of_features)
+double** allocate_memory_for_training_features(int number_of_samples, int number_of_features)
 {
 	double** training_samples = new double* [number_of_samples];
 	for (int i = 0; i < number_of_samples; i++)
@@ -75,4 +75,48 @@ double* allocate_memory_for_target_values(int number_of_samples)
 	double* target_values = new double[number_of_samples];
 
 	return target_values;
+}
+
+// deallocate the memory in the provided weights pointer
+void deallocate_memory_for_weights(double*** weights, const int* number_of_neurons_each_hidden_layer, int number_of_hidden_layers)
+{
+	for (int l = 0; l < number_of_hidden_layers; l++)
+	{
+		for (int n = 0; n < number_of_neurons_each_hidden_layer[l]; n++)
+			delete[] weights[l][n];
+		delete[] weights[l];
+	}
+
+	// deallocate output layer weights
+	delete[] weights[number_of_hidden_layers][0];
+	delete[] weights[number_of_hidden_layers];
+
+	delete[] weights;
+}
+
+// deallocate memory in provided bias pointer
+void deallocate_memory_for_biases(double** biases, int number_of_hidden_layers)
+{
+	for (int l = 0; l < number_of_hidden_layers; l++)
+		delete[] biases[l];
+
+	// deallocate output layer bias
+	delete[] biases[number_of_hidden_layers];
+
+	delete[] biases;
+}
+
+// deallocate memory for training features
+void deallocate_memory_for_training_features(double** training_features, int number_of_samples)
+{
+	for (int t = 0; t < number_of_samples; t++)
+		delete[] training_features[t];
+
+	delete[] training_features;
+}
+
+// deallocate memory for target values
+void deallocate_memory_for_target_values(double* target_values)
+{
+	delete[] target_values;
 }

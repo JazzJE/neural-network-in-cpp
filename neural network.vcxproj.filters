@@ -42,11 +42,14 @@
     <ClCompile Include="MenuFunctions.cpp">
       <Filter>Source Files\Main Files %28.cpp%29</Filter>
     </ClCompile>
+    <ClCompile Include="MemoryFunctions.cpp">
+      <Filter>Source Files\Main Files %28.cpp%29</Filter>
+    </ClCompile>
+    <ClCompile Include="StatisticsFunctions.cpp">
+      <Filter>Source Files\Main Files %28.cpp%29</Filter>
+    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryAllocFunctions.cpp">
-      <Filter>Source Files\Main Files %28.cpp%29</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -65,7 +68,10 @@
     <ClInclude Include="MenuFunctions.h">
       <Filter>Header Files\Main Files %28.h%29</Filter>
     </ClInclude>
-    <ClInclude Include="MemoryAllocFunctions.h">
+    <ClInclude Include="MemoryFunctions.h">
+      <Filter>Header Files\Main Files %28.h%29</Filter>
+    </ClInclude>
+    <ClInclude Include="StatisticsFunctions.h">
       <Filter>Header Files\Main Files %28.h%29</Filter>
     </ClInclude>
   </ItemGroup>

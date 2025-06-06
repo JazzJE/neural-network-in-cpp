@@ -1,7 +1,11 @@
 #pragma once
 #include "DenseLayer.h"
-#include "MemoryAllocFunctions.h"
+#include "MemoryFunctions.h"
+#include "StatisticsFunctions.h"
 #include <fstream>
+#include <cstdlib>
+#include <iostream>
+
 class NeuralNetwork
 {
 private:
@@ -29,11 +33,12 @@ public:
 	~NeuralNetwork();
 
 	// train the neural network five times based on the number of training samples
-	void five_fold_train(double** training_features, double* target_values, int number_of_training_samples);
-	void mini_batch_descent(double** training_features, double* target_values, int initial_index, int final_index, int number_of_training_samples);
+	void five_fold_train(double** training_features, double* target_values, int number_of_samples);
+	void mini_batch_descent(double*** best_weights, double** best_biases, double** training_features_normalized, double* target_values,
+		int lower_cross_validation_index, int higher_cross_validation_index, int number_of_samples);
 
 	// calculate a value based on the current weights and biases as well as the input features
-	double calculate_prediction(double* input_features, double target_value);
+	double calculate_prediction(double* input_features);
 
 	// mutator/setter methods for rates
 	void set_regularization_rate(double r_rate);

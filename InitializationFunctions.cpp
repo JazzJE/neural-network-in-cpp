@@ -55,11 +55,30 @@ void generate_weights_and_biases_for_layer(std::fstream& weights_and_biases_file
 void parse_weights_and_biases_file(std::fstream& weights_and_biases_file, double*** weights, double** biases,
 	const int* number_of_neurons_each_hidden_layer, int number_of_hidden_layers, int number_of_features)
 {
+	// parse weights and biases for first layer
+	parse_weights_and_biases_for_layer(weights_and_biases_file, number_of_features, 
+		number_of_neurons_each_hidden_layer[0], weights, biases, 0);
+
+	// parse the rest of the layers into the weights and biases array
+	for (int l = 1; l < number_of_hidden_layers; l++)
+		parse_weights_and_biases_for_layer(weights_and_biases_file, number_of_neurons_each_hidden_layer[l - 1],
+			number_of_neurons_each_hidden_layer[l], weights, biases, l);
+
+	// parse last layer into the weights and biases array
+	// remember that the number of hidden layers is equal to the index of the last layer
+	parse_weights_and_biases_for_layer(weights_and_biases_file, number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1],
+		1, weights, biases, number_of_hidden_layers);
+
+}
+
+	// helper function to parse each neuron of a given layer
+void parse_weights_and_biases_for_layer(std::fstream& weights_and_biases_file, int number_of_features, int number_of_neurons, 
+	double***weights, double** biases, int layer_index)
+{
 	std::string line, value;
 	std::stringstream ss;
-
-	// parse the first layer into the weights and biases arrays
-	for (int n = 0; n < number_of_neurons_each_hidden_layer[0]; n++)
+	
+	for (int n = 0; n < number_of_neurons; n++)
 	{
 		getline(weights_and_biases_file, line);
 
@@ -69,52 +88,13 @@ void parse_weights_and_biases_file(std::fstream& weights_and_biases_file, double
 		for (int w = 0; w < number_of_features; w++)
 		{
 			getline(ss, value, ',');
-			weights[0][n][w] = std::stod(value);
+			weights[layer_index][n][w] = std::stod(value);
 		}
 
 		// last value will be bias value
 		getline(ss, value, '\n');
-		biases[0][n] = std::stod(value);
+		biases[layer_index][n] = std::stod(value);
 	}
-
-	// parse the rest of the layers into the weights and biases array
-	for (int l = 1; l < number_of_hidden_layers; l++)
-	{
-		for (int n = 0; n < number_of_neurons_each_hidden_layer[l]; n++)
-		{
-			getline(weights_and_biases_file, line);
-
-			ss.clear();
-			ss.str(line);
-
-			for (int w = 0; w < number_of_neurons_each_hidden_layer[l - 1]; w++)
-			{
-				getline(ss, value, ',');
-				weights[l][n][w] = std::stod(value);
-			}
-
-			// last value will be bias value
-			getline(ss, value, '\n');
-			biases[l][n] = std::stod(value);
-		}
-	}
-
-	// parse last layer into the weights and biases array
-	// remember that the number of hidden layers is equal to the index of the last layer
-	getline(weights_and_biases_file, line);
-
-	ss.clear();
-	ss.str(line);
-
-	for (int w = 0; w < number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1]; w++)
-	{
-		getline(ss, value, ',');
-		weights[number_of_hidden_layers][0][w] = std::stod(value);
-	}
-
-	getline(ss, value, '\n');
-	*(biases[number_of_hidden_layers]) = std::stod(value);
-
 }
 
 // methods to validate the weights and biases file
@@ -227,9 +207,8 @@ bool check_line_weights_and_biases_file(std::fstream& weights_and_biases_file, i
 
 	std::stringstream ss(line);
 
-	// count the number of weights and biases in a given row
-	// for a given row, there should be a number of features + one to simulate
-	// how each neuron will have an equal number of weights + one bias value
+	// for a given row, there should be a number of features + one to simulate how each neuron will have an equal 
+	// number of weights + one bias value
 	int field_count = 0;
 	while (getline(ss, value, ','))
 	{
@@ -369,23 +348,29 @@ int find_error_dataset_file(std::fstream& dataset_file, int number_of_features)
 // miscellaneous methods
 
 	// randomize the order of the training samples
-void randomize_training_samples(double**& training_samples, const int& number_of_samples)
+void randomize_training_samples(double** training_features, double* target_values, int number_of_samples)
 {	
 	int random_index;
-	double* temp;
+	double temp_double;
+	double* temp_ptr;
 
 	for (int current_index = number_of_samples - 1; current_index > 0; current_index--)
 	{
 		random_index = std::rand() % current_index;
 
 		// swap where pointers are directed
-		temp = training_samples[random_index];
-		training_samples[random_index] = training_samples[current_index];
-		training_samples[current_index] = temp;
+		temp_ptr = training_features[random_index];
+		training_features[random_index] = training_features[current_index];
+		training_features[current_index] = temp_ptr;
+
+		// swap the target values
+		temp_double = target_values[random_index];
+		target_values[random_index] = target_values[current_index];
+		target_values[current_index] = temp_double;
 	}
 }
 
-// count the number of samples in the file
+	// count the number of samples in the file
 int count_number_of_samples(std::fstream& dataset_file)
 {
 	int counter = 0;
@@ -404,8 +389,8 @@ int count_number_of_samples(std::fstream& dataset_file)
 	return counter;
 }
 
-// count number of column titles, which is equal to number of features
-// note that the number of features is equal to the number of fields taken in minus 1, given last column is training sample
+	// count number of column titles, which is equal to number of features
+	// note that the number of features is equal to the number of fields taken in minus 1, given last column is training sample
 int count_number_of_features(std::fstream& dataset_file)
 {
 	int counter = 0;

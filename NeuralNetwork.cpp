@@ -33,45 +33,108 @@ NeuralNetwork::~NeuralNetwork()
 }
 
 // train the neural network five times based on the number of training samples
-void NeuralNetwork::five_fold_train(double** training_features, double* target_values, int number_of_training_samples)
+void NeuralNetwork::five_fold_train(double** training_features, double* target_values, int number_of_samples)
 {
+	// create these pointers to store the best weights and best bias values for the current iteration
+	double*** best_weights = allocate_memory_for_weights(number_of_neurons_each_hidden_layer, number_of_hidden_layers,
+		network_number_of_features);
+	double** best_biases = allocate_memory_for_biases(number_of_neurons_each_hidden_layer, number_of_hidden_layers);
+
 	int lower_cross_validation_index, higher_cross_validation_index;
-	int samples_per_division = number_of_training_samples / 5;
-	double* means = new double[network_number_of_features];
-	double* std_devs = new double[network_number_of_features];
+	int samples_per_fold = number_of_samples / 5;
 
 	// for each training period of the neural network, use the lower 
 	for (int i = 0; i < 4; i++)
 	{
-		lower_cross_validation_index = i * samples_per_division;
-		higher_cross_validation_index = (i + 1) * samples_per_division - 1;
-		mini_batch_descent(training_features, target_values, lower_cross_validation_index, higher_cross_validation_index,
-			number_of_training_samples);
+		lower_cross_validation_index = i * samples_per_fold;
+		higher_cross_validation_index = (i + 1) * samples_per_fold - 1;
+
+		double* training_means = calculate_features_means(training_features, network_number_of_features, number_of_samples,
+			lower_cross_validation_index, higher_cross_validation_index);
+		double* training_stddevs = calculate_features_stddevs(training_features, training_means,
+			network_number_of_features, number_of_samples, lower_cross_validation_index, higher_cross_validation_index);
+		
+		double** training_features_normalized = calculate_normalized_features(training_features, number_of_samples, network_number_of_features, 
+			training_means, training_stddevs);
+
+		mini_batch_descent(best_weights, best_biases, training_features_normalized, target_values, 
+			lower_cross_validation_index, higher_cross_validation_index, number_of_samples);
+
+		delete[] training_means;
+		delete[] training_stddevs;
+		deallocate_memory_for_training_features(training_features_normalized, number_of_samples);
 	}
 
 	// use all the remaining training sets as the cross validation set
-	lower_cross_validation_index = 4 * samples_per_division;
-	higher_cross_validation_index = number_of_training_samples - 1;
-	mini_batch_descent(training_features, target_values, lower_cross_validation_index, higher_cross_validation_index, 
-		number_of_training_samples);
+	lower_cross_validation_index = 4 * samples_per_fold;
+	higher_cross_validation_index = number_of_samples - 1;
 
-	delete[] means;
-	delete[] std_devs;
+	double* training_means = calculate_features_means(training_features, network_number_of_features, number_of_samples, 
+		lower_cross_validation_index, higher_cross_validation_index);
+	double* training_stddevs = calculate_features_stddevs(training_features, training_means,
+		network_number_of_features, number_of_samples, lower_cross_validation_index, higher_cross_validation_index);
+	
+	double** training_features_normalized = calculate_normalized_features(training_features, number_of_samples, network_number_of_features, 
+		training_means, training_stddevs);
+
+	mini_batch_descent(best_weights, best_biases, training_features_normalized, target_values,
+		lower_cross_validation_index, higher_cross_validation_index, number_of_samples);
+
+	// deallocate all memory
+	delete[] training_means;
+	delete[] training_stddevs;
+	deallocate_memory_for_training_features(training_features_normalized, number_of_samples);
+	deallocate_memory_for_weights(best_weights, number_of_neurons_each_hidden_layer, number_of_hidden_layers);
+	deallocate_memory_for_biases(best_biases, number_of_hidden_layers);
 }
 
 // run mini-batch gradient descent on the provided fold
-void NeuralNetwork::mini_batch_descent(double** training_features, double* target_values, int lower_validation_index,
-	int higher_validation_index, int number_of_training_samples)
+void NeuralNetwork::mini_batch_descent(double*** best_weights, double** best_biases, double** training_features_normalized, double* target_values,
+	int lower_validation_index, int higher_validation_index, int number_of_samples)
 {
-	// allocate memory to store the best current weights for the neural network
-	double*** best_weights = allocate_memory_for_weights(number_of_neurons_each_hidden_layer, number_of_hidden_layers, 
-		network_number_of_features);
+	const int batch_size = 64;
+	const int patience = 5;
+	double best_mse = -1, current_mse = 0;
+	int selected_sample_indices[batch_size];
 
+	// count the number of times the network has failed to product a smaller mse value, 
+	// and end training with this fold when it meets the patience value
+	int failed_epochs = 0;
 
+	while (failed_epochs < patience)
+	{
+		current_mse = 0;	
+		// select random sample indices for the batch
+		for (int i = 0; i < batch_size; i++)
+		{
+			// select a random index
+			selected_sample_indices[i] = std::rand() % number_of_samples;
+
+			// while the random index is inside the range of the cross-validation set, select a new index
+			while (selected_sample_indices[i] >= lower_validation_index && selected_sample_indices[i] <= higher_validation_index)
+				selected_sample_indices[i] = std::rand() % number_of_samples;
+		}
+
+		for (int i = 0; i < batch_size; i++)
+			current_mse += pow(calculate_prediction(training_features_normalized[selected_sample_indices[i]]) - 
+				target_values[selected_sample_indices[i]], 2.0);
+		current_mse /= (2 * batch_size);
+
+		std::cout << "\n\tThe current mean_squared error is " << current_mse
+			<< "\n\tThe previous mean_squared error is " << previous_mse << std::endl;
+
+		if (current_mse > previous_mse)
+			failed_epochs++;
+		else
+		{
+			
+		}
+		std::cout << "\nThe number of failed epochs is " << failed_epochs << std::endl;
+	}
 }
 
 // return a value based on the current weights and biases as well as the input features
-double NeuralNetwork::calculate_prediction(double* input_features, double target_value)
+double NeuralNetwork::calculate_prediction(double* input_features)
 {
 	double* activation_array = input_features;
 
