@@ -68,6 +68,20 @@ double** allocate_memory_for_training_features(int number_of_samples, int number
 	return training_samples;
 }
 
+// allocate memory for means and variances OR shifts and scales
+double** allocate_memory_for_mv_or_ss(int net_number_of_neurons)
+{
+	double** mv_or_ss = new double* [net_number_of_neurons];
+
+	// each array will store either the...
+		// 1. running mean, 2. running variances OR
+		// 1. shift, 2. scale
+	for (int n = 0; n < net_number_of_neurons; n++)
+		mv_or_ss[n] = new double[2];
+
+	return mv_or_ss;
+}
+
 // allocate 1d array for training samples via 1d pointer
 	// each will store the respective actual ith value of the ith samples features
 double* allocate_memory_for_target_values(int number_of_samples)
@@ -113,6 +127,15 @@ void deallocate_memory_for_training_features(double** training_features, int num
 		delete[] training_features[t];
 
 	delete[] training_features;
+}
+
+// deallocate memory for means and variances OR shifts and scales
+void deallocate_memory_for_mv_or_ss(double** mv_or_ss, int net_number_of_neurons)
+{
+	for (int n = 0; n < net_number_of_neurons; n++)
+		delete[] mv_or_ss[n];
+
+	delete[] mv_or_ss;
 }
 
 // deallocate memory for target values

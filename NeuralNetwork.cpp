@@ -121,9 +121,9 @@ void NeuralNetwork::mini_batch_descent(double*** best_weights, double** best_bia
 		current_mse /= (2 * batch_size);
 
 		std::cout << "\n\tThe current mean_squared error is " << current_mse
-			<< "\n\tThe previous mean_squared error is " << previous_mse << std::endl;
+			<< "\n\tThe previous mean_squared error is " << best_mse << std::endl;
 
-		if (current_mse > previous_mse)
+		if (current_mse > best_mse)
 			failed_epochs++;
 		else
 		{

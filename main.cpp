@@ -50,7 +50,9 @@ int main()
 		// the fourth/output layer will have 1 neuron, predicting the value
 	const int number_of_neurons_each_hidden_layer[] = { 7, 10, 3 };
 
-
+	// some initialization parameters; leave these alone if you don't know how they work
+	const int momentum = 0.9;
+	const int batch_size = 64;
 
 	// PAST THIS POINT IS ALL THE HARD CODE; REFER TO ABOVE PARTS FOR EDITABLE COMPONENTS
 	
@@ -105,18 +107,19 @@ int main()
 
 	// open the file for weights
 	std::string weights_and_biases_file_name = "weights_and_biases.csv";
-	std::fstream weights_and_biases_file(weights_and_biases_file_name, std::ios::out | std::ios::in);
+	std::fstream weights_and_biases_file(weights_and_biases_file_name, std::ios::in);
 
 	// if the weight file was not opened (therefore doesn't exist), initialize a new one using He initialization
 	if (!weights_and_biases_file)
 	{
 		std::cout << "Weights and biases file not found; creating new one...";
-		
+		weights_and_biases_file.close();
+
 		// create a new weight file
 		generate_weights_and_biases_file(weights_and_biases_file_name, number_of_neurons_each_hidden_layer, 
 			number_of_hidden_layers, number_of_features);
 
-		weights_and_biases_file.open(weights_and_biases_file_name, std::ios::out | std::ios::in);
+		weights_and_biases_file.open(weights_and_biases_file_name, std::ios::in);
 	}
 
 	// ensure that the weights and biases file has the appropriate weights and biases for each layer, else prompt the user 
@@ -135,6 +138,70 @@ int main()
 
 	// close weights file when done
 	weights_and_biases_file.close();
+
+
+	// file will store the running means and running variances of each neuron
+	std::string means_and_vars_file_name = "means_and_vars.csv";
+	std::fstream means_and_vars_file(means_and_vars_file_name, std::ios::in);
+
+	// calculate the net number of neurons in the entire network
+	int net_number_of_neurons = 0;
+	for (int l = 0; l < number_of_hidden_layers; l++)
+		net_number_of_neurons += number_of_neurons_each_hidden_layer[l];
+	// output layer will represent one extra neuron
+	net_number_of_neurons++;
+
+	// if the running means and running variances file doesn't exist, generate a new one
+	if (!means_and_vars_file)
+	{
+		std::cout << "Running means and running variances file not found; creating new one...\n\n";
+		means_and_vars_file.close();
+
+		generate_means_and_vars_file(means_and_vars_file_name, net_number_of_neurons);
+
+		means_and_vars_file.open(means_and_vars_file_name, std::ios::in);
+	}
+
+	// validate each line has only 2 fields, no negatives, and no strings
+	validate_mv_or_ss_file(means_and_vars_file, means_and_vars_file_name, net_number_of_neurons);
+
+	// allocate memory for means and variances
+	double** const means_and_variances = allocate_memory_for_mv_or_ss(net_number_of_neurons);
+
+	// parse the means and variances
+	parse_mv_or_ss_file(means_and_vars_file, means_and_variances, net_number_of_neurons);
+
+	// close the file
+	means_and_vars_file.close();
+
+
+	// file will store affinal transformation parameters for each neuron
+	std::string scales_and_shifts_file_name = "scales_and_shifts.csv";
+	std::fstream scales_and_shifts_file(scales_and_shifts_file_name, std::ios::in);
+
+	// if the running means and running variances file doesn't exist, generate a new one
+	if (!scales_and_shifts_file)
+	{
+		std::cout << "Scales and shifts file not found; creating new one...\n\n";
+		scales_and_shifts_file.close();
+
+		generate_scales_and_shifts_file(scales_and_shifts_file_name, net_number_of_neurons);
+
+		scales_and_shifts_file.open(scales_and_shifts_file_name, std::ios::in);
+	}
+
+	// validate each line has only 2 fields, no negatives, and no strings
+	validate_mv_or_ss_file(scales_and_shifts_file, scales_and_shifts_file_name, net_number_of_neurons);
+
+	// allocate memory for scales and shifts
+	double** const scales_and_shifts = allocate_memory_for_mv_or_ss(net_number_of_neurons);
+
+	// parse the scales and shifts
+	parse_mv_or_ss_file(scales_and_shifts_file, scales_and_shifts, net_number_of_neurons);
+
+	// close the file
+	scales_and_shifts_file.close();
+
 
 	// begin menus and actual interaction with neural network from this line onwards
 	char option;
