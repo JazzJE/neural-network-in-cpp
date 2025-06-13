@@ -6,15 +6,24 @@
 	// the number of weights/features
 	// a pointer to the input features of the layer, such that when the layer's input features is updated, all the neurons are effectively
 		// updated as well
-DenseLayer::DenseLayer(double** layer_weights, double* layer_biases, int number_of_features, int number_of_neurons)
-	: number_of_features(number_of_features), number_of_neurons(number_of_neurons), neurons(new Neuron*[number_of_neurons]),
+DenseLayer::DenseLayer(double** layer_weights, double* layer_biases, double** layer_means_and_variances, double** layer_scales_and_shifts,
+	double** training_layer_activation_values, double* layer_activation_array, int batch_size, int number_of_features, int number_of_neurons,
+	double* regularization_rate, double* learning_rate)
+	: number_of_features(number_of_features), number_of_neurons(number_of_neurons), batch_size(batch_size), 
+	neurons(new Neuron*[number_of_neurons]),
 	
-	// this array will store the output values of the previous layer's activations by copying the activations into this array
-	// this allows the features to update across all neurons simultaneously rather than one at a time
+	// assign the activation arrays/output arrays that we are outputting to as the input arrays/feature arrays of the n + 1th layer
+	training_layer_activation_arrays(training_layer_activation_values),
+	layer_activation_array(layer_activation_array),
+
+	// create new inputs that can then be used for the n - 1th layer
+	training_layer_input_features(allocate_memory_for_training_features(batch_size, number_of_features)),
 	layer_input_features(new double[number_of_features])
 {
 	for (int n = 0; n < number_of_neurons; n++)
-		neurons[n] = new Neuron(layer_weights[n], &layer_biases[n], layer_input_features, number_of_features);
+		neurons[n] = new Neuron(layer_weights[n], &layer_biases[n], layer_means_and_variances[n], layer_scales_and_shifts[n],
+			training_layer_input_features, training_layer_activation_arrays, layer_input_features, layer_activation_array,
+			number_of_features, n);
 }
 
 // collect all the activations in a single dynamically allocated array
@@ -28,10 +37,20 @@ double* DenseLayer::compute_activation_array()
 	return activation_array;
 }
 
-// return where the layer inputs will be stored
-double* DenseLayer::get_layer_input_features()
-{  return layer_input_features;  }
-
 // return the number of features the layer will receive
 double DenseLayer::get_number_of_features()
 {  return number_of_features;  }
+
+// return a pointer to the activation value/array not used for training
+double* DenseLayer::get_activation_array()
+{
+	return activation_array;
+}
+
+// return where the training layer input features will be stored
+double** DenseLayer::get_training_layer_input_features()
+{ return training_layer_input_features; }
+
+// return where the layer inputs will be stored
+double* DenseLayer::get_layer_input_features()
+{ return layer_input_features; }

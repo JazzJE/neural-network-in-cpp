@@ -11,23 +11,27 @@ class NeuralNetwork
 private:
 
 	const int network_number_of_features;
+	const int batch_size;
 
 	DenseLayer** const hidden_layers;
 	const int* number_of_neurons_each_hidden_layer;
 	const int number_of_hidden_layers;
 	DenseLayer* const output_layer;
 
-	double regularization_rate;
-	double learning_rate;
+	double* const regularization_rate;
+	double* const learning_rate;
 
 	double*** const network_weights;
 	double** const network_biases;
+	double** const network_running_means_and_variances;
+	double** const network_scales_and_shifts;
 
 public:
 
 	// initialize all the variables
-	NeuralNetwork(double*** weights, double** biases, const int* number_of_neurons_each_hidden_layer,
-		int number_of_hidden_layers, int number_of_features, double learning_rate, double regularization_rate);
+	NeuralNetwork(double*** weights, double** biases, double** means_and_variances, double** scales_and_shifts, 
+		const int* number_of_neurons_each_hidden_layer, int net_number_of_neurons, int number_of_hidden_layers, 
+		int number_of_features, int batch_size, double learning_rate, double regularization_rate);
 
 	// destructor to delete neural network
 	~NeuralNetwork();

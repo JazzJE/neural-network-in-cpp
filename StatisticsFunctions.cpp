@@ -6,7 +6,7 @@
 // lower boundary of the cross-validation set and the higher boundary of the cross-validation set, such that the cross-validation
 // set can be skipped over when calculating the means of the training set
 
-double* calculate_features_means(double** training_features, int number_of_features, int number_of_training_samples, 
+double* calculate_features_means(double** sample_features, int number_of_features, int number_of_training_samples, 
 	int lower_validation_index, int higher_validation_index)
 {
 	double* means_array = new double[number_of_features]();
@@ -18,7 +18,7 @@ double* calculate_features_means(double** training_features, int number_of_featu
 		
 		else
 			for (int f = 0; f < number_of_features; f++)
-				means_array[f] += training_features[t][f];
+				means_array[f] += sample_features[t][f];
 	}
 
 	// the number of test samples is equal to the number of samples minus 1,
@@ -36,7 +36,7 @@ double* calculate_features_means(double** training_features, int number_of_featu
 // lower boundary of the cross-validation set and the higher boundary of the cross-validation set, such that the cross-validation
 // set can be skipped over when calculating the stddevs of the training set
 
-double* calculate_features_stddevs(double** training_features, double* features_means, int number_of_features, 
+double* calculate_features_stddevs(double** sample_features, double* features_means, int number_of_features, 
 	int number_of_training_samples, int lower_validation_index, int higher_validation_index)
 {
 	double* stddevs_array = new double[number_of_features]();
@@ -48,7 +48,7 @@ double* calculate_features_stddevs(double** training_features, double* features_
 
 		else
 			for (int f = 0; f < number_of_features; f++)
-				stddevs_array[f] += pow(training_features[t][f] - features_means[f], 2.0);
+				stddevs_array[f] += pow(sample_features[t][f] - features_means[f], 2.0);
 	}
 
 	// the number of test samples is equal to the number of samples minus 1,
@@ -64,18 +64,13 @@ double* calculate_features_stddevs(double** training_features, double* features_
 }
 
 // normalizing features in a new dynamically allocated array
-double** calculate_normalized_features(double** training_features, int number_of_samples, int number_of_features, double* means_array, double* stddevs_array)
+double** calculate_normalized_features(double** sample_features, int number_of_samples, int number_of_features, double* means_array, double* stddevs_array)
 {
 	double** normalized_features = allocate_memory_for_training_features(number_of_samples, number_of_features);
 
 	for (int t = 0; t < number_of_samples; t++)
 		for (int f = 0; f < number_of_features; f++)
-		{
-			if (stddevs_array[f] == 0)
-				normalized_features[t][f] = 0;
-			else
-				normalized_features[t][f] = ((training_features[t][f] - means_array[f]) / stddevs_array[f]);
-		}
+			normalized_features[t][f] = ((sample_features[t][f] - means_array[f]) / sqrt(pow(stddevs_array[f], 2.0) + 1e-14));
 
 	return normalized_features;
 }

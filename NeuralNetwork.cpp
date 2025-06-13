@@ -3,27 +3,70 @@
 // initialize each hidden layer with their...
 		// weights,
 		// biases,
+		// scales and shifts,
+		// running means and variances,
 		// the number of weights they will have (which is the number of neurons in the previous layer but number of features for first layer),
 		// and the number of neurons they will have
 
-NeuralNetwork::NeuralNetwork(double*** weights, double** biases, const int* number_of_neurons_each_hidden_layer,
-	int number_of_hidden_layers, int number_of_features, double learning_rate, double regularization_rate) : 
+NeuralNetwork::NeuralNetwork(double*** weights, double** biases, double** means_and_variances, double** scales_and_shifts,
+	const int* number_of_neurons_each_hidden_layer, int net_number_of_neurons, int number_of_hidden_layers, int number_of_features,
+	int batch_size, double learning_rate, double regularization_rate) :
 	
 	network_number_of_features(number_of_features), number_of_neurons_each_hidden_layer(number_of_neurons_each_hidden_layer),
-	number_of_hidden_layers(number_of_hidden_layers), regularization_rate(regularization_rate), learning_rate(learning_rate), 
-	network_weights(weights), network_biases(biases), hidden_layers(new DenseLayer*[number_of_hidden_layers]), 
+	number_of_hidden_layers(number_of_hidden_layers), regularization_rate(new double(regularization_rate)), learning_rate(new double(learning_rate)), 
+	network_weights(weights), network_biases(biases), network_running_means_and_variances(means_and_variances), 
+	network_scales_and_shifts(scales_and_shifts), batch_size(batch_size), hidden_layers(new DenseLayer*[number_of_hidden_layers]), 
 	
 	// output layer
 	output_layer(new DenseLayer(weights[number_of_hidden_layers], biases[number_of_hidden_layers],
-		number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1], 1))
-{
-	// first hidden layer
-	hidden_layers[0] = new DenseLayer(weights[0], biases[0], number_of_features, number_of_neurons_each_hidden_layer[0]);
+		&network_running_means_and_variances[net_number_of_neurons - 1], &network_scales_and_shifts[net_number_of_neurons - 1],
 
-	// rest of the layers
-	for (int l = 1; l < number_of_hidden_layers; l++)
-		hidden_layers[l] = new DenseLayer(weights[l], biases[l], number_of_neurons_each_hidden_layer[l - 1], 
-			number_of_neurons_each_hidden_layer[l]);
+		// the output for the activation array of training and actual predictions will be "one" features for any sample
+		allocate_memory_for_training_features(batch_size, 1), new double[1], 
+		batch_size, number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1], 1, this->regularization_rate, this->learning_rate))
+
+{
+	*(this->regularization_rate) = regularization_rate;
+	*(this->learning_rate) = learning_rate;
+
+	// "hooking" refers to connecting any given nth layer's output features to the (n + 1)th layer's input features via pointers
+
+	// if there is only hidden layer, then hook the output and input layer to this layer
+	if (number_of_hidden_layers == 1)
+		hidden_layers[0] = new DenseLayer(weights[0], biases[0], &network_running_means_and_variances[0],
+			&network_scales_and_shifts[0], output_layer->get_training_layer_input_features(), output_layer->get_layer_input_features(), 
+			batch_size,	network_number_of_features, number_of_neurons_each_hidden_layer[0], this->regularization_rate, this->learning_rate);
+	
+	// else, if there are n layers
+	else
+	{
+		// this will refer to the index of the means and variances & scales and shifts that the layer is allotted to for its neurons
+		int current_index = net_number_of_neurons - 1;
+
+		// hook the nth layer to the output layer
+		current_index -= number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1];
+		hidden_layers[number_of_hidden_layers - 1] = new DenseLayer(weights[number_of_hidden_layers - 1], biases[number_of_hidden_layers - 1], 
+			&network_running_means_and_variances[0], &network_scales_and_shifts[0], output_layer->get_training_layer_input_features(), 
+			output_layer->get_layer_input_features(), batch_size, number_of_neurons_each_hidden_layer[number_of_hidden_layers - 2], 
+			number_of_neurons_each_hidden_layer[number_of_hidden_layers - 1], this->regularization_rate, this->learning_rate);
+
+		// for each current layer
+		for (int l = number_of_hidden_layers - 1; l > 1; l--)
+		{
+			current_index -= number_of_neurons_each_hidden_layer[l - 1];
+			hidden_layers[l - 1] = new DenseLayer(weights[l - 1], biases[l - 1], &network_running_means_and_variances[current_index], 
+				&network_scales_and_shifts[current_index], hidden_layers[l]->get_training_layer_input_features(), 
+				hidden_layers[l]->get_layer_input_features(), batch_size, number_of_neurons_each_hidden_layer[l - 2], 
+				number_of_neurons_each_hidden_layer[l - 1], this->regularization_rate, this->learning_rate);
+		}
+
+		// hook the 1st layer to the input features of the 2nd layer, but also hook to the input features of the input layer
+		// note that the current_index will always equal to 0 at this point
+		hidden_layers[0] = new DenseLayer(weights[0], biases[0], &network_running_means_and_variances[0], &network_scales_and_shifts[0], 
+			hidden_layers[1]->get_training_layer_input_features(), hidden_layers[1]->get_layer_input_features(), batch_size, 
+			network_number_of_features,	number_of_neurons_each_hidden_layer[0], this->regularization_rate, this->learning_rate);
+	}
+
 }
 
 // delete all dynamically allocated objects
@@ -134,46 +177,22 @@ void NeuralNetwork::mini_batch_descent(double*** best_weights, double** best_bia
 }
 
 // return a value based on the current weights and biases as well as the input features
-double NeuralNetwork::calculate_prediction(double* input_features)
+double NeuralNetwork::calculate_prediction(double* normalized_input_features)
 {
-	double* activation_array = input_features;
-
-	// for the first layer
-	// copy the previous layer's activation array into the next layer's input features
+	// copy the normalized input features into the first layer's input array
 	for (int f = 0; f < network_number_of_features; f++)
-		hidden_layers[0]->get_layer_input_features()[f] = activation_array[f];
-	activation_array = hidden_layers[0]->compute_activation_array();
+		hidden_layers[0]->get_layer_input_features()[f] = normalized_input_features[f];
 
-	// for every layer
-	for (int l = 1; l < number_of_hidden_layers; l++)
-	{
-		// copy the previous layer's activation array into the next layer's input features
-		for (int f = 0; f < hidden_layers[l]->get_number_of_features(); f++)
-			hidden_layers[l]->get_layer_input_features()[f] = activation_array[f];
+	// for each layer
+	
+		// have compute the activation values
 
-		// note that because we are copying the activation array into the next layer's input features, the activation_array must be deleted
-		// after copying; this is because the activation array is unused after copying
-		delete[] activation_array;
-
-		activation_array = hidden_layers[l]->compute_activation_array();
-	}
-
-	// copy the output features of the last layer into the output layer
-	for (int f = 0; f < output_layer->get_number_of_features(); f++)
-		output_layer->get_layer_input_features()[f] = activation_array[f];
-	delete[] activation_array;
-
-	// output layer will only return a dynamic array of one value, which needs to be deleted before returning the output
-	activation_array = output_layer->compute_activation_array();
-	double output_value = *activation_array;
-	delete[] activation_array;
-
-	return output_value;
+	// output layer will calculate a singular value and return that value as the result
 	
 }
 
 // mutator/setter methods for rates
 void NeuralNetwork::set_regularization_rate(double r_rate)
-{ regularization_rate = r_rate; }
+{ *regularization_rate = r_rate; }
 void NeuralNetwork::set_learning_rate(double l_rate)
-{ learning_rate = l_rate; }
+{ *learning_rate = l_rate; }

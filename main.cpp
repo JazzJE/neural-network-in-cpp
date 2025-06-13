@@ -51,7 +51,6 @@ int main()
 	const int number_of_neurons_each_hidden_layer[] = { 7, 10, 3 };
 
 	// some initialization parameters; leave these alone if you don't know how they work
-	const int momentum = 0.9;
 	const int batch_size = 64;
 
 	// PAST THIS POINT IS ALL THE HARD CODE; REFER TO ABOVE PARTS FOR EDITABLE COMPONENTS
@@ -78,6 +77,13 @@ int main()
 	int number_of_features = count_number_of_features(dataset_file);
 	int number_of_hidden_layers = sizeof(number_of_neurons_each_hidden_layer) / sizeof(int);
 
+	if (number_of_hidden_layers == 0)
+	{
+		std::cerr << "[ERROR] Before using this program, please ensure that the \'number_of_neurons_each_hidden_layer\' array " 
+			<< "has at least 1 integer.";
+		exit(0);
+	}
+
 	// ensure that the dataset file has the correct number of features for each line, and if not, then end the program
 	validate_dataset_file(dataset_file, dataset_file_name, number_of_features);
 
@@ -98,8 +104,8 @@ int main()
 	// calculate the means and standard deviations of all the features and normalize them
 	double* all_samples_means = calculate_features_means(training_features, number_of_features, number_of_samples);
 	double* all_samples_stddevs = calculate_features_stddevs(training_features, all_samples_means, number_of_features, number_of_samples);
-	double** all_features_normalized = calculate_normalized_features(training_features, number_of_samples, number_of_features, all_samples_means, 
-		all_samples_stddevs);
+	double** all_samples_normalized_features = calculate_normalized_features(training_features, number_of_samples, 
+		number_of_features, all_samples_means, all_samples_stddevs);
 
 	// close dataset file when done
 	dataset_file.close();
@@ -216,15 +222,15 @@ int main()
 	generate_border_line();
 
 	// create the neural network
-	NeuralNetwork neural_network(weights, biases, number_of_neurons_each_hidden_layer, number_of_hidden_layers,
-		number_of_features, learning_rate, regularization_rate);
+	NeuralNetwork neural_network(weights, biases, means_and_variances, scales_and_shifts, number_of_neurons_each_hidden_layer, 
+		net_number_of_neurons, number_of_hidden_layers, number_of_features, batch_size, learning_rate, regularization_rate);
 
 	while (true)
 	{
 		std::cout << "\nOption Menu:"
 			<< "\n\t1. Train neural network (five-fold, mini-batch gradient descent)"
 			<< "\n\t2. Predict a value"
-			<< "\n\t3. Save your current neural network (update the weights and biases file)"
+			<< "\n\t3. Save your current neural network configs (update all files to latest version in this program)"
 			<< "\n\t4. Change learning and regularization parameters"
 			<< "\n\t5. Exit program (exiting will not save the network)"
 			<< "\nPlease select an option: ";
@@ -271,6 +277,8 @@ int main()
 
 			update_weights_and_biases_file(weights_and_biases_file_name, weights, biases, 
 				number_of_neurons_each_hidden_layer, number_of_hidden_layers, number_of_features);
+			update_mv_or_ss_file(means_and_vars_file_name, means_and_variances, net_number_of_neurons);
+			update_mv_or_ss_file(scales_and_shifts_file_name, scales_and_shifts, net_number_of_neurons);
 
 			break; // end case
 
