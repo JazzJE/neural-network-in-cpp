@@ -43,11 +43,8 @@ double** allocate_memory_for_biases(const int* number_of_neurons_each_hidden_lay
 {
 	double** biases = new double* [number_of_hidden_layers + 1];
 
-	// allocate memory for bias values of the first layer
-	biases[0] = new double[number_of_neurons_each_hidden_layer[0]];
-
-	// allocate memory for each subsequent layer
-	for (int l = 1; l < number_of_hidden_layers; l++)
+	// allocate bias values for each hidden layer
+	for (int l = 0; l < number_of_hidden_layers; l++)
 		biases[l] = new double[number_of_neurons_each_hidden_layer[l]];
 
 	// allocate memory for last layer/output layer with one neuron

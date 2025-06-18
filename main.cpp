@@ -268,7 +268,11 @@ int main()
 
 			std::cout << "\n\nActual value of " << target_name << ": " << target_values[random_index];
 
-			std::cout << "\n\nPrediction of " << target_name << ": " << neural_network.calculate_prediction(training_features[random_index]) << "\n";
+			double* normalized_features = calculate_normalized_features(training_features[random_index], number_of_features, all_samples_means, all_samples_stddevs);
+			std::cout << "\n\nNormalized features: ";
+			for (int f = 0; f < number_of_features; f++)
+				std::cout << normalized_features[f] << " ";
+			std::cout << "\n\nPrediction of " << target_name << ": " << neural_network.calculate_prediction(normalized_features) << "\n";
 
 			break; // end case
 		}

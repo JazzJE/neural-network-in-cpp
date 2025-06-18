@@ -134,6 +134,8 @@
     <ClCompile Include="MenuFunctions.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
     <ClCompile Include="Neuron.cpp" />
+    <ClCompile Include="OutputLayer.cpp" />
+    <ClCompile Include="OutputNeuron.cpp" />
     <ClCompile Include="StatisticsFunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -143,6 +145,8 @@
     <ClInclude Include="MenuFunctions.h" />
     <ClInclude Include="NeuralNetwork.h" />
     <ClInclude Include="Neuron.h" />
+    <ClInclude Include="OutputLayer.h" />
+    <ClInclude Include="OutputNeuron.h" />
     <ClInclude Include="StatisticsFunctions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

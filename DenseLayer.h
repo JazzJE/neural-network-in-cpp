@@ -3,7 +3,7 @@
 #include "MemoryFunctions.h"
 class DenseLayer
 {
-private:
+protected:
 
 	Neuron** const neurons;
 	const int number_of_neurons;
@@ -27,13 +27,15 @@ public:
 	// delete all the dynamically allocated objects
 	~DenseLayer();
 
-	// layer will go through each neuron and return a dynamically allocated array of all their values
-	double* compute_activation_array();
-	
+	// layer will go through each neuron and compute its activation values
+	void compute_activation_array();
+	void training_compute_activation_arrays();
+
 	// getter/accessor methods
-	double* get_layer_input_features();
-	double get_number_of_features();
-	double** get_training_layer_input_features();
+	double** get_training_layer_input_features() const;
+	double** get_training_layer_activation_arrays() const;
+	double* get_layer_activation_array() const;
+	double* get_layer_input_features() const;
 
 };
 

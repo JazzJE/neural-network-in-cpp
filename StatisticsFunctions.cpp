@@ -64,6 +64,7 @@ double* calculate_features_stddevs(double** sample_features, double* features_me
 }
 
 // normalizing features in a new dynamically allocated array
+// this is used for when given multiple samples of features
 double** calculate_normalized_features(double** sample_features, int number_of_samples, int number_of_features, double* means_array, double* stddevs_array)
 {
 	double** normalized_features = allocate_memory_for_training_features(number_of_samples, number_of_features);
@@ -71,6 +72,17 @@ double** calculate_normalized_features(double** sample_features, int number_of_s
 	for (int t = 0; t < number_of_samples; t++)
 		for (int f = 0; f < number_of_features; f++)
 			normalized_features[t][f] = ((sample_features[t][f] - means_array[f]) / sqrt(pow(stddevs_array[f], 2.0) + 1e-14));
+
+	return normalized_features;
+}
+
+// this is used for when given a single sample of features
+double* calculate_normalized_features(double* sample_features, int number_of_features, double* means_array, double* stddevs_array)
+{
+	double* normalized_features = new double[number_of_features];
+
+	for (int f = 0; f < number_of_features; f++)
+		normalized_features[f] = ((sample_features[f] - means_array[f]) / (sqrt(pow(stddevs_array[f], 2.0) + 1e-14)));
 
 	return normalized_features;
 }

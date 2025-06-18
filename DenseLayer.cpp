@@ -23,34 +23,45 @@ DenseLayer::DenseLayer(double** layer_weights, double* layer_biases, double** la
 	for (int n = 0; n < number_of_neurons; n++)
 		neurons[n] = new Neuron(layer_weights[n], &layer_biases[n], layer_means_and_variances[n], layer_scales_and_shifts[n],
 			training_layer_input_features, training_layer_activation_arrays, layer_input_features, layer_activation_array,
-			number_of_features, n);
+			number_of_features, batch_size, n);
 }
 
-// collect all the activations in a single dynamically allocated array
-double* DenseLayer::compute_activation_array()
+// deallocate the neurons and the input features; the nth layer will have its output layer activation arrays be deallocated by the 
+// (n + 1)th layer as they refer to the same thing
+DenseLayer::~DenseLayer()
 {
-	double* activation_array = new double[number_of_neurons];
-
 	for (int n = 0; n < number_of_neurons; n++)
-		activation_array[n] = neurons[n]->reLU_activation_function();
+		delete neurons[n];
+	delete[] neurons;
 
-	return activation_array;
+	delete[] layer_input_features;
+	deallocate_memory_for_training_features(training_layer_input_features, batch_size);
 }
 
-// return the number of features the layer will receive
-double DenseLayer::get_number_of_features()
-{  return number_of_features;  }
-
-// return a pointer to the activation value/array not used for training
-double* DenseLayer::get_activation_array()
+// calculate each neuron's activation values
+void DenseLayer::compute_activation_array()
 {
-	return activation_array;
+	for (int n = 0; n < number_of_neurons; n++)
+		neurons[n]->compute_activation_value();
 }
 
-// return where the training layer input features will be stored
-double** DenseLayer::get_training_layer_input_features()
-{ return training_layer_input_features; }
+// calculate each sample's activation_values
+void DenseLayer::training_compute_activation_arrays()
+{
+	for (int n = 0; n < batch_size; n++)
+		neurons[n]->training_compute_activation_values();
+}
 
 // return where the layer inputs will be stored
-double* DenseLayer::get_layer_input_features()
+double* DenseLayer::get_layer_input_features() const
 { return layer_input_features; }
+// return the activation array
+double* DenseLayer::get_layer_activation_array() const
+{ return layer_activation_array; }
+
+// return where the training layer input features will be stored
+double** DenseLayer::get_training_layer_input_features() const
+{ return training_layer_input_features; }
+// return the training activation array
+double** DenseLayer::get_training_layer_activation_arrays() const
+{ return training_layer_activation_arrays; }

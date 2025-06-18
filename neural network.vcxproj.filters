@@ -51,6 +51,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OutputLayer.cpp">
+      <Filter>Source Files\Neural Network Files %28.cpp%29</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputNeuron.cpp">
+      <Filter>Source Files\Neural Network Files %28.cpp%29</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DenseLayer.h">
@@ -73,6 +79,12 @@
     </ClInclude>
     <ClInclude Include="StatisticsFunctions.h">
       <Filter>Header Files\Main Files %28.h%29</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputLayer.h">
+      <Filter>Header Files\Neural Network Files %28.h%29</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputNeuron.h">
+      <Filter>Header Files\Neural Network Files %28.h%29</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
